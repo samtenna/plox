@@ -3,14 +3,28 @@ from abc import ABC, abstractmethod
 from tokens import Token
 
 
-class Expr(ABC):
+class Visitor(ABC):
     @abstractmethod
-    def accept[T](visitor: Visitor[T]) -> T:
+    def visit_binary(self, expr: "Binary") -> object:
+        pass
+
+    @abstractmethod
+    def visit_grouping(self, expr: "Grouping") -> object:
+        pass
+
+    @abstractmethod
+    def visit_literal(self, expr: "Literal") -> object:
+        pass
+
+    @abstractmethod
+    def visit_unary(self, expr: "Unary") -> object:
         pass
 
 
-class Visitor(ABC):
-    pass
+class Expr(ABC):
+    @abstractmethod
+    def accept(self, visitor: Visitor) -> object:
+        pass
 
 
 class Binary(Expr):
@@ -21,12 +35,18 @@ class Binary(Expr):
         self.operator = operator
         self.right = right
 
+    def accept(self, visitor: Visitor) -> object:
+        return visitor.visit_binary(self)
+
 
 class Grouping(Expr):
     def __init__(self, expression: Expr) -> None:
         super().__init__()
 
         self.expression = expression
+
+    def accept(self, visitor: Visitor) -> object:
+        return visitor.visit_grouping(self)
 
 
 class Literal(Expr):
@@ -35,6 +55,9 @@ class Literal(Expr):
 
         self.value = value
 
+    def accept(self, visitor: Visitor) -> object:
+        return visitor.visit_literal(self)
+
 
 class Unary(Expr):
     def __init__(self, operator: Token, right: Expr) -> None:
@@ -42,3 +65,6 @@ class Unary(Expr):
 
         self.operator = operator
         self.right = right
+
+    def accept(self, visitor: Visitor) -> object:
+        return visitor.visit_unary(self)
